@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+
+    <item
+        android:id="@+id/action_remove_selected_highlight"
+        android:title="Eliminar subrayado seleccionado"
+        android:icon="@drawable/delete"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_highlight_yellow"
+        android:icon="@drawable/circule_yellow"
+        android:title="Abrir EPUB"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_highlight_blue"
+        android:icon="@drawable/circule_blue"
+        android:title="Abrir EPUB"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_open_epub_left"
+        android:title="Abrir EPUB Izquierdo"
+        android:icon="@drawable/ic_open_left"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_open_epub_right"
+        android:title="Abrir EPUB Derecho"
+        android:icon="@drawable/ic_open_right"
+        app:showAsAction="always" />
+
+
+</menu>
