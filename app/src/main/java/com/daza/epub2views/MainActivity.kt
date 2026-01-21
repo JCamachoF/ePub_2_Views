@@ -89,6 +89,10 @@ class MainActivity : AppCompatActivity() {
 
         navigationView.setBackgroundColor(getColor(R.color.colorBackground))
 
+        webViewLeft.loadUrl("file:///android_asset/empty_state.html")
+        webViewRight.loadUrl("file:///android_asset/empty_state.html")
+
+
 
         // Agrega el toggle (ícono hamburguesa)
         val toggle = ActionBarDrawerToggle(
@@ -132,9 +136,27 @@ class MainActivity : AppCompatActivity() {
                     return false
                 }
 
-                override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                    Toast.makeText(this@MainActivity, "Error al cargar contenido", Toast.LENGTH_SHORT).show()
+                override fun onReceivedError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    error: WebResourceError?
+                ) {
+                    view?.loadDataWithBaseURL(
+                        null,
+                        """
+        <html>
+        <body style="text-align:center;padding:40px;font-family:sans-serif;">
+            <h3>Error loading content</h3>
+            <p>Please try opening the EPUB again.</p>
+        </body>
+        </html>
+        """.trimIndent(),
+                        "text/html",
+                        "utf-8",
+                        null
+                    )
                 }
+
 
 
             }
@@ -178,6 +200,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadEpubInWebView(uri: Uri, webViewNumber: Int) {
+
+        // ✅ 1. Obtener el WebView correcto
+        val webView = if (webViewNumber == 1) webViewLeft else webViewRight
+
+        // ✅ 2. Mostrar estado de carga INMEDIATO (evita pantalla en blanco)
+        webView.loadData(
+            "<html><body style='text-align:center;padding:40px;font-family:sans-serif;'>" +
+                    "<p>Loading EPUB…</p></body></html>",
+            "text/html",
+            "utf-8"
+        )
+
+        // ---- TU CÓDIGO EXISTENTE (SIN CAMBIOS) ----
+
         val epubId = uri.lastPathSegment?.hashCode()?.toString() ?: "default$webViewNumber"
         val outputDir = File(filesDir, "epub_${epubId}_$webViewNumber")
 
@@ -197,7 +233,6 @@ class MainActivity : AppCompatActivity() {
             .firstOrNull { it.isFile && (it.extension == "xhtml" || it.extension == "html") }
 
         if (firstHtml != null) {
-            val webView = if (webViewNumber == 1) webViewLeft else webViewRight
             webView.loadUrl("file://${firstHtml.absolutePath}")
 
             val epubDir = if (webViewNumber == 1) epubExtractedDir1 else epubExtractedDir2
@@ -207,9 +242,21 @@ class MainActivity : AppCompatActivity() {
                 .putString("last_epub_id_$webViewNumber", epubId)
                 .putString("last_read_path_$webViewNumber", firstHtml.absolutePath)
                 .apply()
-        }
-        else {
-            Toast.makeText(this, "No se encontró archivo HTML en el EPUB", Toast.LENGTH_LONG).show()
+        } else {
+            webView.loadDataWithBaseURL(
+                null,
+                """
+            <html>
+            <body style="text-align:center;padding:40px;font-family:sans-serif;">
+                <h3>Invalid EPUB</h3>
+                <p>No readable HTML content was found.</p>
+            </body>
+            </html>
+            """.trimIndent(),
+                "text/html",
+                "utf-8",
+                null
+            )
         }
     }
 
@@ -381,7 +428,8 @@ class MainActivity : AppCompatActivity() {
 
     fun extractTitleFromXhtml(file: File): String {
         val text = file.readText()
-        val regex = Regex("<title>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+        val regex = Regex("<title>(.*?)</title>", setOf(RegexOption.IGNORE_CASE,
+            RegexOption.DOT_MATCHES_ALL))
 
         val matchResult = regex.find(text)
         return matchResult?.groups?.get(1)?.value?.trim() ?: file.name
